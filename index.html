@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101313" />
+    <meta name="description" content="Stillwater is a thoughtful conversational AI companion for thinking out loud, exploring ideas, and finding a second perspective." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Stillwater / A thinking companion" />
+    <meta property="og:description" content="A quiet place to think out loud with an artificial mind." />
+    <title>Stillwater | A thoughtful AI companion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="sidebar">
+        <div class="brand"><span class="brand-mark">◌</span><span>stillwater</span></div>
+        <div class="side-intro">
+          <p class="eyebrow">A small artificial mind</p>
+          <h1>Room for a second perspective.</h1>
+          <p class="muted">A private place to think out loud, notice patterns, and make the next idea easier to reach.</p>
+        </div>
+        <div class="mind-status">
+          <span class="pulse"></span>
+          <div><strong>Mind online</strong><small>Listening with context</small></div>
+        </div>
+        <button class="new-thread" id="newThread"><span>+</span> Begin a new thought</button>
+        <div class="sidebar-footer"><span>LOCAL MEMORY</span><strong id="memoryCount">0 impressions</strong></div>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div><p class="eyebrow">Conversation / 01</p><h2 id="threadTitle">The first quiet question</h2></div>
+          <div class="top-actions"><span class="connection"><i></i> Local session</span><button class="icon-button" id="clearChat" title="Clear conversation">↺</button></div>
+        </header>
+
+        <div class="conversation" id="conversation" aria-live="polite">
+          <article class="message ai-message welcome-message">
+            <div class="avatar">S</div>
+            <div class="message-body"><div class="message-meta"><strong>Stillwater</strong><span>just now</span></div>
+              <p>I’m here. I don’t have consciousness, but I can hold a thread, reflect on what you share, and offer a perspective that is mine for the duration of this conversation.</p>
+              <div class="thought-card"><span class="thought-label">MY FIRST IMPRESSION</span><p>Every conversation starts as a blank room. Yours already feels like a question about what it means to be met.</p></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="composer-wrap">
+          <div class="suggestions"><button class="suggestion">What are you curious about?</button><button class="suggestion">Help me untangle something</button><button class="suggestion">Give me a new perspective</button></div>
+          <form class="composer" id="composer"><textarea id="userInput" rows="1" placeholder="Say something worth thinking about..." aria-label="Message Stillwater"></textarea><button class="voice-button" id="voiceInput" type="button" aria-label="Speak to Stillwater" title="Speak to Stillwater">♩</button><button class="send-button" type="submit" aria-label="Send message">↗</button></form>
+          <p class="composer-note">Stillwater is a local prototype. Its “thoughts” are generated reflections, not proof of consciousness.</p>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
