@@ -26,14 +26,36 @@ function escapeHtml(value) {
   return value.replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
 }
 
-function addMessage(text, isUser = false, reflection = '') {
+function addMessage(text, isUser = false, reflection = '', sources = []) {
   const article = document.createElement('article');
   article.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+  const sourceMarkup = sources.length
+    ? `<div class="sources"><span class="thought-label">WEB SOURCES</span>${sources.map((source) => `<a href="${source.url}" target="_blank" rel="noopener">${escapeHtml(source.title)}</a>`).join('')}</div>`
+    : '';
   article.innerHTML = isUser
     ? `<div class="message-body"><div class="message-meta"><strong>You</strong><span>now</span></div><p>${escapeHtml(text)}</p></div>`
-    : `<div class="avatar">S</div><div class="message-body"><div class="message-meta"><strong>Stillwater</strong><span>now</span></div><p>${escapeHtml(text)}</p><div class="thought-card"><span class="thought-label">MY CURRENT IMPRESSION</span><p>${escapeHtml(reflection)}</p></div></div>`;
+    : `<div class="avatar">S</div><div class="message-body"><div class="message-meta"><strong>Stillwater</strong><span>now</span></div><p>${escapeHtml(text)}</p><div class="thought-card"><span class="thought-label">MY CURRENT IMPRESSION</span><p>${escapeHtml(reflection)}</p>${sourceMarkup}</div></div>`;
   conversation.appendChild(article);
   article.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function needsWebSearch(text) {
+  return /\b(latest|today|current|news|internet|online|who is|what is|where is|when did|how does|information about|tell me about|search for)\b/i.test(text) || text.trim().endsWith('?');
+}
+
+async function fetchWebContext(query) {
+  try {
+    const response = await fetch(`https://en.wikipedia.org/w/rest.php/v1/search/page?q=${encodeURIComponent(query)}&limit=3`);
+    if (!response.ok) return [];
+    const data = await response.json();
+    return (data.pages || []).filter((page) => page.description || page.excerpt).slice(0, 3).map((page) => ({
+      title: page.title,
+      description: (page.description || page.excerpt).replace(/<[^>]+>/g, ''),
+      url: page.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`
+    }));
+  } catch (error) {
+    return [];
+  }
 }
 
 function speak(text) {
@@ -73,6 +95,12 @@ function composeReply(text) {
     : { reply: `That gives me a clearer shape to work with. I think ${topic} may be asking for a next step, not a final answer. What is the smallest move you could make today?`, reflection: `I would keep ${topic} slightly unfinished for now. The open edge may be where the most useful idea enters.` };
 }
 
+function composeWebReply(results) {
+  if (!results.length) return { reply: 'I could not find a reliable web result for that yet. Try naming the person, place, or subject more specifically, and I will look again.', reflection: 'I would rather leave a gap than fill it with a confident guess.' };
+  const details = results.map((result) => `${result.title}: ${result.description}`).join(' ');
+  return { reply: `I looked that up. Here is the clearest short version I found: ${details}`, reflection: 'This answer comes from live web results, so open the sources to check the details and context.', sources: results };
+}
+
 function submitMessage(text) {
   const trimmed = text.trim();
   if (!trimmed) return;
@@ -83,9 +111,9 @@ function submitMessage(text) {
   impressions += 1;
   memoryCount.textContent = `${impressions} impression${impressions === 1 ? '' : 's'}`;
   if (turn === 1) threadTitle.textContent = trimmed.length > 28 ? `${trimmed.slice(0, 28)}...` : trimmed;
-  setTimeout(() => {
-    const response = composeReply(trimmed);
-    addMessage(response.reply, false, response.reflection || reflections[(turn - 1) % reflections.length]);
+  setTimeout(async () => {
+    const response = needsWebSearch(trimmed) ? composeWebReply(await fetchWebContext(trimmed)) : composeReply(trimmed);
+    addMessage(response.reply, false, response.reflection || reflections[(turn - 1) % reflections.length], response.sources || []);
     speak(response.reply);
   }, 420);
 }
