@@ -26,3 +26,9 @@ h1 { max-width: 300px; margin-bottom: 24px; font-size: clamp(32px, 4vw, 52px); l
 .voice-button { display: grid; place-items: center; width: 36px; height: 36px; border: 0; color: var(--muted); background: transparent; font-size: 18px; }
 .voice-button:hover, .voice-button.listening { color: var(--accent); }
 .voice-button.listening { border: 1px solid var(--accent); }
+.speech-toggle { color: var(--accent); }
+.speech-toggle.off { color: var(--muted); opacity: .55; }
+.sources { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; align-items: center; }
+.sources .thought-label { width: 100%; }
+.sources a { color: var(--accent); font-size: 11px; text-decoration: none; }
+.sources a:hover { text-decoration: underline; }

@@ -7,12 +7,14 @@ const clearChat = document.querySelector('#clearChat');
 const newThread = document.querySelector('#newThread');
 const suggestions = document.querySelectorAll('.suggestion');
 const voiceInput = document.querySelector('#voiceInput');
+const speechToggle = document.querySelector('#speechToggle');
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognizer = SpeechRecognition ? new SpeechRecognition() : null;
 
 let impressions = 0;
 let turn = 0;
 let memories = [];
+let speechEnabled = true;
 const opening = conversation.innerHTML;
 
 const reflections = [
@@ -59,7 +61,7 @@ async function fetchWebContext(query) {
 }
 
 function speak(text) {
-  if (!('speechSynthesis' in window)) return;
+  if (!speechEnabled || !('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const spokenText = text.replace(/[;:]/g, '.').replace(/\s+/g, ' ').trim();
   const utterance = new SpeechSynthesisUtterance(spokenText);
@@ -125,6 +127,15 @@ suggestions.forEach((button) => button.addEventListener('click', () => { input.v
 function reset() { conversation.innerHTML = opening; impressions = 0; turn = 0; memories = []; memoryCount.textContent = '0 impressions'; threadTitle.textContent = 'The first quiet question'; input.focus(); }
 clearChat.addEventListener('click', reset);
 newThread.addEventListener('click', reset);
+
+speechToggle.addEventListener('click', () => {
+  speechEnabled = !speechEnabled;
+  if (!speechEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  speechToggle.classList.toggle('off', !speechEnabled);
+  speechToggle.textContent = speechEnabled ? '♩' : '×';
+  speechToggle.title = speechEnabled ? 'Turn AI speech off' : 'Turn AI speech on';
+  speechToggle.setAttribute('aria-label', speechToggle.title);
+});
 
 if (recognizer) {
   recognizer.lang = 'en-US';
