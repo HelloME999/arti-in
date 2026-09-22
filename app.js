@@ -7,7 +7,17 @@ const clearChat = document.querySelector('#clearChat');
 const newThread = document.querySelector('#newThread');
 const suggestions = document.querySelectorAll('.suggestion');
 const voiceInput = document.querySelector('#voiceInput');
-const speechToggle = document.querySelector('#speechToggle');
+const speechToggle = document.querySelector('#speechToggle') || (() => {
+  const button = document.createElement('button');
+  button.className = 'icon-button speech-toggle';
+  button.id = 'speechToggle';
+  button.type = 'button';
+  button.title = 'Turn AI speech off';
+  button.setAttribute('aria-label', 'Turn AI speech off');
+  button.textContent = '♩';
+  document.querySelector('.top-actions')?.prepend(button);
+  return button;
+})();
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognizer = SpeechRecognition ? new SpeechRecognition() : null;
 
