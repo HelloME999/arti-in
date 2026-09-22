@@ -25,6 +25,7 @@ let impressions = 0;
 let turn = 0;
 let memories = [];
 let speechEnabled = true;
+let learning = JSON.parse(localStorage.getItem('stillwater-learning') || '{"helpful":0,"corrections":0,"preference":""}');
 const opening = conversation.innerHTML;
 
 const reflections = [
@@ -44,10 +45,20 @@ function addMessage(text, isUser = false, reflection = '', sources = []) {
   const sourceMarkup = sources.length
     ? `<div class="sources"><span class="thought-label">WEB SOURCES</span>${sources.map((source) => `<a href="${source.url}" target="_blank" rel="noopener">${escapeHtml(source.title)}</a>`).join('')}</div>`
     : '';
+  const feedbackMarkup = !isUser ? `<div class="feedback"><button type="button" data-feedback="helpful">Useful</button><button type="button" data-feedback="correction">Needs correction</button></div>` : '';
   article.innerHTML = isUser
     ? `<div class="message-body"><div class="message-meta"><strong>You</strong><span>now</span></div><p>${escapeHtml(text)}</p></div>`
-    : `<div class="avatar">S</div><div class="message-body"><div class="message-meta"><strong>Stillwater</strong><span>now</span></div><p>${escapeHtml(text)}</p><div class="thought-card"><span class="thought-label">MY CURRENT IMPRESSION</span><p>${escapeHtml(reflection)}</p>${sourceMarkup}</div></div>`;
+    : `<div class="avatar">S</div><div class="message-body"><div class="message-meta"><strong>Stillwater</strong><span>now</span></div><p>${escapeHtml(text)}</p><div class="thought-card"><span class="thought-label">MY CURRENT IMPRESSION</span><p>${escapeHtml(reflection)}</p>${sourceMarkup}</div>${feedbackMarkup}</div>`;
   conversation.appendChild(article);
+  article.querySelectorAll('[data-feedback]').forEach((button) => button.addEventListener('click', () => {
+    const kind = button.dataset.feedback;
+    const countKey = kind === 'correction' ? 'corrections' : 'helpful';
+    learning[countKey] += 1;
+    if (kind === 'correction') learning.preference = 'Be more precise, acknowledge uncertainty, and avoid overconfident claims.';
+    localStorage.setItem('stillwater-learning', JSON.stringify(learning));
+    button.parentElement.querySelectorAll('button').forEach((item) => item.classList.remove('selected'));
+    button.classList.add('selected');
+  }));
   article.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
@@ -102,9 +113,10 @@ function composeReply(text) {
   if (clean.includes('idea') || clean.includes('create') || clean.includes('build')) return { reply: `Here is my idea: make ${topic} into a tiny experiment that someone can try in ten minutes. Give it one visible result, then let that result tell us what deserves to grow.`, reflection: `I am drawn to the smallest version of ${topic}. Small experiments create evidence, and evidence is kinder to ideas than guessing.` };
   if (clean.includes('remember') || clean.includes('what did i')) return { reply: `I am carrying these threads: ${memories.join(', ') || 'the beginning of our conversation'}. The strongest one so far is ${memories[0] || topic}.`, reflection: 'A useful memory is not a transcript. It is a pattern that helps the next thought arrive with more context.' };
   if (clean.includes('?')) return { reply: `I think your question is connected to ${topic}. My instinct is to start with the part that changes what you do next, rather than the part that is easiest to answer.`, reflection: `The word ${topic} keeps some weight in the room. I would stay with it for one more question before reaching for a conclusion.` };
+  const precision = learning.preference ? ` ${learning.preference}` : '';
   return turn % 2 === 0
-    ? { reply: `I hear you, and I am holding onto ${topic}. One possibility is to look at it from the opposite angle: what would make this feel simpler, more honest, or more alive?`, reflection: `My current thread is ${memories.slice(-3).join(', ') || topic}. I am looking for the connection between those ideas.` }
-    : { reply: `That gives me a clearer shape to work with. I think ${topic} may be asking for a next step, not a final answer. What is the smallest move you could make today?`, reflection: `I would keep ${topic} slightly unfinished for now. The open edge may be where the most useful idea enters.` };
+    ? { reply: `I hear you, and I am holding onto ${topic}. One possibility is to look at it from the opposite angle: what would make this feel simpler, more honest, or more alive?${precision}`, reflection: `My current thread is ${memories.slice(-3).join(', ') || topic}. I am looking for the connection between those ideas.` }
+    : { reply: `That gives me a clearer shape to work with. I think ${topic} may be asking for a next step, not a final answer. What is the smallest move you could make today?${precision}`, reflection: `I would keep ${topic} slightly unfinished for now. The open edge may be where the most useful idea enters.` };
 }
 
 function composeWebReply(results) {
@@ -134,7 +146,7 @@ composer.addEventListener('submit', (event) => { event.preventDefault(); submitM
 input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 110)}px`; });
 input.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submitMessage(input.value); } });
 suggestions.forEach((button) => button.addEventListener('click', () => { input.value = button.textContent; input.focus(); input.dispatchEvent(new Event('input')); }));
-function reset() { conversation.innerHTML = opening; impressions = 0; turn = 0; memories = []; memoryCount.textContent = '0 impressions'; threadTitle.textContent = 'The first quiet question'; input.focus(); }
+function reset() { conversation.innerHTML = opening; impressions = 0; turn = 0; memories = []; learning = { helpful: 0, corrections: 0, preference: '' }; localStorage.removeItem('stillwater-learning'); memoryCount.textContent = '0 impressions'; threadTitle.textContent = 'The first quiet question'; input.focus(); }
 clearChat.addEventListener('click', reset);
 newThread.addEventListener('click', reset);
 

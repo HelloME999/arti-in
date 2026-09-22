@@ -32,3 +32,6 @@ h1 { max-width: 300px; margin-bottom: 24px; font-size: clamp(32px, 4vw, 52px); l
 .sources .thought-label { width: 100%; }
 .sources a { color: var(--accent); font-size: 11px; text-decoration: none; }
 .sources a:hover { text-decoration: underline; }
+.feedback { display: flex; gap: 6px; margin-top: 14px; }
+.feedback button { padding: 5px 8px; border: 1px solid var(--line); color: var(--muted); background: transparent; font-size: 10px; }
+.feedback button:hover, .feedback button.selected { color: var(--accent); border-color: rgba(198,239,152,.45); }
